@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>강제추행 판단 시스템</title>
+</head>
+<body>
+    <h1>강제추행 판단</h1>
+    <form method="post">
+        <label>x추행1: <input type="checkbox" name="x추행1" value="True"></label><br>
+        <label>x추행2: <input type="checkbox" name="x추행2" value="True"></label><br>
+        <label>x추행3: <input type="checkbox" name="x추행3" value="True"></label><br>
+        <button type="submit">판단</button>
+    </form>
+    {% if result is not none %}
+        <p>결과: {{ '유죄' if result else '무죄' }}</p>
+    {% endif %}
+</body>
+</html>
