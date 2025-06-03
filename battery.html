@@ -3,10 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>폭행죄</title>
+  <script>
+    function showRequirement() {
+      const value = document.getElementById("requirementSelect").value;
+      const display = document.getElementById("requirementDisplay");
+
+      if (value === "battery1") {
+        display.innerText = "x폭행1이 참이면 유죄입니다. 법정형은 2년 이하 징역 또는 500만원 이하 벌금입니다.";
+      } else if (value === "battery2") {
+        display.innerText = "x폭행2는 상습범의 경우에 해당합니다.";
+      } else {
+        display.innerText = "";
+      }
+    }
+  </script>
 </head>
 <body>
   <h1>폭행죄 구성요건</h1>
-  <p>① 사람을 폭행한 자는 2년 이하의 징역, 500만 원 이하의 벌금에 처한다.</p>
+
+  <label for="requirementSelect">구성요건 함수를 선택하세요:</label>
+  <select id="requirementSelect" onchange="showRequirement()">
+    <option value="">-- 선택하세요 --</option>
+    <option value="battery1">x폭행1: 사람을 폭행한 경우</option>
+    <option value="battery2">x폭행2: 상습 폭행</option>
+  </select>
+
+  <p id="requirementDisplay" style="margin-top:20px; font-weight:bold;"></p>
+
   <p><a href="index.html">← 돌아가기</a></p>
 </body>
 </html>
