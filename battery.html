@@ -2,14 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>폭행죄 판단 도구</title>
+<title>형법 260조 1항 조회</title>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 const LAW_API_BASE_URL = "https://www.law.go.kr";
 
 class LawApiParams {
   constructor(target, type = "json") {
-    this.OC = "nthiseth"; // API 인증키
+    this.OC = "nthiseth"; // 본인 API 인증키
     this.type = type;
     this.target = target;
   }
@@ -36,76 +36,31 @@ async function lawApiCall(urlPath, lawApiParams) {
 
 async function fetchArticle260_1() {
   const params = new LawApiParams("lawView", "json")
-    .addField("ID", "001692000260010"); // 형법 260조 1항 조문ID
+    .addField("ID", "001692000260010"); // 형법 260조 제1항 조문ID
 
   try {
     const data = await lawApiCall("/DRF/lawService.do", params);
 
-    // 조문 배열에서 항번호 ①인 것 찾기
+    // 조문 데이터 배열에서 해당 조문 찾기
     const article = data.법령.조문.find(c => c.조문키 === "001692000260010");
 
     if (article) {
+      // ①항 내용만 표시
       const clause1 = article.항.find(h => h.항번호 === "①");
-      document.getElementById("law-text").textContent = clause1 ? clause1.항내용.trim() : "조문 내용이 없습니다.";
+      document.getElementById("result").textContent = clause1 ? clause1.항내용.trim() : "조문 내용이 없습니다.";
     } else {
-      document.getElementById("law-text").textContent = "조문을 찾을 수 없습니다.";
+      document.getElementById("result").textContent = "조문을 찾을 수 없습니다.";
     }
   } catch (e) {
-    document.getElementById("law-text").textContent = "조문 조회 실패";
+    document.getElementById("result").textContent = "조문 조회 실패";
   }
 }
 
-function checkBattery() {
-  // 폭행죄 변수 체크 예시
-  const assault = document.getElementById("assault").checked;
-  const family = document.getElementById("family").checked;
-
-  let verdict = "";
-  let penalty = "";
-
-  if (assault) {
-    if (family) {
-      verdict = "✅ Guilty of Battery against family.";
-      penalty = "Penalty: Up to 5 years imprisonment or 7 million KRW fine.";
-    } else {
-      verdict = "✅ Guilty of Battery.";
-      penalty = "Penalty: Up to 2 years imprisonment or 5 million KRW fine.";
-    }
-  } else {
-    verdict = "❌ Not guilty of Battery.";
-    penalty = "";
-  }
-
-  document.getElementById("verdict").textContent = verdict;
-  document.getElementById("penalty").textContent = penalty;
-}
-
-window.onload = () => {
-  fetchArticle260_1();
-  document.getElementById("check-btn").addEventListener("click", checkBattery);
-};
+window.onload = fetchArticle260_1;
 </script>
 </head>
 <body>
-<h1>폭행죄 판단 도구</h1>
-
-<section>
-  <h2>법 조문</h2>
-  <pre id="law-text">로딩 중...</pre>
-</section>
-
-<section>
-  <h2>변수 입력</h2>
-  <label><input type="checkbox" id="assault" /> 폭행행위가 있었나요?</label><br/>
-  <label><input type="checkbox" id="family" /> 피해자가 직계존속(가족)인가요?</label><br/>
-  <button id="check-btn">판단하기</button>
-</section>
-
-<section>
-  <h2>판단 결과</h2>
-  <p id="verdict"></p>
-  <p id="penalty"></p>
-</section>
-
+<h1>형법 제260조 제1항</h1>
+<pre id="result">로딩 중...</pre>
 </body>
 </html>
