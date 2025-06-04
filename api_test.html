@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>형법 260조 1항 조회</title>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+const LAW_API_BASE_URL = "https://www.law.go.kr";
+
+class LawApiParams {
+  constructor(target, type = "json") {
+    this.OC = "nthiseth"; // 본인 API 인증키로 교체하세요
+    this.type = type;
+    this.target = target;
+  }
+  addField(key, value) {
+    this[key] = value;
+    return this;
+  }
+}
+
+async function lawApiCall(urlPath, lawApiParams) {
+  try {
+    const response = await $.ajax({
+      url: LAW_API_BASE_URL + urlPath,
+      method: "GET",
+      data: lawApiParams,
+      dataType: lawApiParams.type,
+    });
+    return response;
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
+  }
+}
+
+async function fetchArticle260_1() {
+  const params = new LawApiParams("law", "json")
+    .addField("ID", "001692000260010"); // 형법 260조 제1항 조문ID
+  try {
+    const data = await lawApiCall("/DRF/lawService.do", params);
+    const content = data.law.contents[0].content;
+    document.getElementById("result").textContent = content;
+  } catch (e) {
+    document.getElementById("result").textContent = "조문 조회 실패";
+  }
+}
+
+window.onload = fetchArticle260_1;
+</script>
+</head>
+<body>
+<h1>형법 제260조 제1항</h1>
+<pre id="result">로딩 중...</pre>
+</body>
+</html>
