@@ -1,33 +1,116 @@
-function loadLaw260() {
-  const apiURL = "https://www.law.go.kr/DRF/lawService.do?OC=nthiseth&target=law&ID=001692&type=json";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Legal Judgment Tool</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+    #result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+    pre {
+      background: #f7f7f7;
+      padding: 1rem;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Legal Judgment Tool - Battery</h1>
 
-  fetch(apiURL)
-    .then(res => res.json())
-    .then(data => {
-      const law = data.Law;
-      let articles = law.Article;
+  <label for="xBattery">Was there physical assault? (yes/no)</label><br>
+  <input id="xBattery" type="text"><br><br>
 
-      // Article이 배열이 아니라 단일 객체일 경우 처리
-      if (!Array.isArray(articles)) {
-        articles = [articles];
-      }
+  <label for="xVictim">Was the victim a direct ascendant (e.g., parent)? (yes/no)</label><br>
+  <input id="xVictim" type="text"><br><br>
 
-      const article260 = articles.find(item => item.조문번호 === "260");
+  <label for="xIntent">Did the victim clearly want prosecution? (yes/no)</label><br>
+  <input id="xIntent" type="text"><br><br>
 
-      if (!article260) {
-        document.getElementById("lawTextContainer").innerText = "형법 제260조 조문을 찾을 수 없습니다.";
+  <button onclick="judge()">Judge</button>
+
+  <div id="result"></div>
+
+  <h2>📖 Criminal Act Article 260</h2>
+  <pre id="lawTextContainer">Loading...</pre>
+
+  <script>
+    function judge() {
+      const xBattery = document.getElementById("xBattery").value.trim().toLowerCase();
+      const xVictim = document.getElementById("xVictim").value.trim().toLowerCase();
+      const xIntent = document.getElementById("xIntent").value.trim().toLowerCase();
+      const result = document.getElementById("result");
+
+      if (xBattery !== "yes") {
+        result.innerHTML = "✅ Not guilty of Battery.";
         return;
       }
 
-      const title = `형법 제${article260.조문번호}조 (${article260.조문제목})\n`;
-      const contents = article260.항
-        ? article260.항.map(h => `${h.항번호} ${h.항내용.trim()}`).join("\n\n")
-        : "항 내용이 없습니다.";
-      
-      document.getElementById("lawTextContainer").innerText = `${title}\n${contents}`;
-    })
-    .catch(err => {
-      document.getElementById("lawTextContainer").innerText = "⚠️ Failed to load legal text: 법령 데이터 형식 오류";
-      console.error("Error fetching law:", err);
-    });
-}
+      if (xIntent === "no") {
+        result.innerHTML = "✅ Not guilty of Battery.<br>🛑 Reason: No clear intent to prosecute.";
+        return;
+      }
+
+      if (xVictim === "yes") {
+        result.innerHTML = "✅ Guilty of Battery against ascendant.<br>Penalty: up to 5 years imprisonment or up to 7 million KRW fine.";
+      } else {
+        result.innerHTML = "✅ Guilty of Battery.<br>Penalty: up to 2 years imprisonment.";
+      }
+    }
+
+    function loadLaw260() {
+      const timestamp = new Date().getTime(); // 캐시 방지용 타임스탬프
+      const apiURL = `https://www.law.go.kr/DRF/lawService.do?OC=nthiseth&target=law&ID=001692&type=json&_=${timestamp}`;
+
+      fetch(apiURL)
+        .then(res => res.json())
+        .then(data => {
+          const law = data.Law;
+          let articles = law.Article;
+
+          if (!articles) {
+            throw new Error("법령에 조문이 없습니다.");
+          }
+
+          // Article이 단일 객체이면 배열로 변환
+          if (!Array.isArray(articles)) {
+            articles = [articles];
+          }
+
+          const article260 = articles.find(item => item.조문번호 === "260");
+
+          if (!article260) {
+            document.getElementById("lawTextContainer").innerText = "형법 제260조 조문을 찾을 수 없습니다.";
+            return;
+          }
+
+          const title = `형법 제${article260.조문번호}조 (${article260.조문제목})\n`;
+          const contents = article260.항
+            ? article260.항.map(h => `${h.항번호} ${h.항내용.trim()}`).join("\n\n")
+            : "항 내용이 없습니다.";
+
+          document.getElementById("lawTextContainer").innerText = `${title}\n${contents}`;
+        })
+        .catch(err => {
+          document.getElementById("lawTextContainer").innerText = "⚠️ Failed to load legal text: 법령 데이터 형식 오류";
+          console.error("Error fetching law:", err);
+        });
+    }
+
+    loadLaw260(); // 페이지 로드시 자동 호출
+  </script>
+</body>
+</html>
