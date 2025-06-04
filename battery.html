@@ -1,66 +1,71 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>형법 260조 1항 조회</title>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-const LAW_API_BASE_URL = "https://www.law.go.kr";
-
-class LawApiParams {
-  constructor(target, type = "json") {
-    this.OC = "nthiseth"; // 본인 API 인증키
-    this.type = type;
-    this.target = target;
-  }
-  addField(key, value) {
-    this[key] = value;
-    return this;
-  }
-}
-
-async function lawApiCall(urlPath, lawApiParams) {
-  try {
-    const response = await $.ajax({
-      url: LAW_API_BASE_URL + urlPath,
-      method: "GET",
-      data: lawApiParams,
-      dataType: lawApiParams.type,
-    });
-    return response;
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
-  }
-}
-
-async function fetchArticle260_1() {
-  const params = new LawApiParams("lawView", "json")
-    .addField("ID", "001692000260010"); // 형법 260조 제1항 조문ID
-
-  try {
-    const data = await lawApiCall("/DRF/lawService.do", params);
-
-    // 조문 데이터 배열에서 해당 조문 찾기
-    const article = data.법령.조문.find(c => c.조문키 === "001692000260010");
-
-    if (article) {
-      // ①항 내용만 표시
-      const clause1 = article.항.find(h => h.항번호 === "①");
-      document.getElementById("result").textContent = clause1 ? clause1.항내용.trim() : "조문 내용이 없습니다.";
-    } else {
-      document.getElementById("result").textContent = "조문을 찾을 수 없습니다.";
-    }
-  } catch (e) {
-    document.getElementById("result").textContent = "조문 조회 실패";
-  }
-}
-
-window.onload = fetchArticle260_1;
-</script>
+  <meta charset="UTF-8">
+  <title>폭행죄 판단기 + 형법 조문</title>
 </head>
 <body>
-<h1>형법 제260조 제1항</h1>
-<pre id="result">로딩 중...</pre>
+  <h1>폭행죄 판단기</h1>
+
+  <label>
+    <input type="checkbox" id="x폭행1"> 폭행의 의사 (고의)
+  </label><br>
+  <label>
+    <input type="checkbox" id="x폭행2"> 상대방 의사에 반함
+  </label><br>
+  <label>
+    <input type="checkbox" id="x폭행3"> 폭행 행위 존재
+  </label><br><br>
+
+  <button onclick="judgeAssault()">판단하기</button>
+
+  <h2>판단 결과</h2>
+  <pre id="verdict">아직 판단되지 않았습니다.</pre>
+
+  <h2>형법 제260조 제1항</h2>
+  <pre id="law-text">조건을 만족하면 조문이 여기에 표시됩니다.</pre>
+
+  <script>
+    function judgeAssault() {
+      const x1 = document.getElementById("x폭행1").checked;
+      const x2 = document.getElementById("x폭행2").checked;
+      const x3 = document.getElementById("x폭행3").checked;
+
+      const isGuilty = x1 && x2 && x3;
+
+      const verdictText = isGuilty
+        ? "유죄 (폭행죄가 성립합니다.)"
+        : "무죄 (폭행죄가 성립하지 않습니다.)";
+
+      document.getElementById("verdict").textContent = verdictText;
+
+      if (isGuilty) {
+        const url = "https://www.law.go.kr/DRF/lawService.do";
+        const params = {
+          OC: "nthiseth",  // 실제 사용 시 본인의 인증키로 변경
+          target: "joRltLstrm",
+          type: "json",
+          ID: "001692",     // 형법 ID
+          JO: "026000"      // 형법 제260조
+        };
+
+        const query = new URLSearchParams(params).toString();
+        const fullUrl = `${url}?${query}`;
+
+        fetch(fullUrl)
+          .then(res => res.json())
+          .then(data => {
+            const content = data.joRltLstrm.조문내용;
+            const firstClause = content.split('\n')[0]; // 제1항만 표시
+            document.getElementById("law-text").textContent = firstClause;
+          })
+          .catch(err => {
+            document.getElementById("law-text").textContent = "조문 불러오기 실패: " + err;
+          });
+      } else {
+        document.getElementById("law-text").textContent = "조문은 유죄일 때만 표시됩니다.";
+      }
+    }
+  </script>
 </body>
 </html>
