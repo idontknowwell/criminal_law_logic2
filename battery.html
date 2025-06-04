@@ -9,6 +9,7 @@
     label { display: block; margin-top: 10px; }
     button { margin-top: 15px; padding: 10px; }
     .result { margin-top: 15px; font-weight: bold; white-space: pre-line; }
+    .law-text { margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-line; }
   </style>
 </head>
 <body>
@@ -54,6 +55,7 @@
 
   <button type="button" onclick="judgeBattery()">Judge Battery</button>
   <div id="result" class="result"></div>
+  <div id="lawTextContainer" class="law-text"></div>
 
 </form>
 
@@ -69,47 +71,50 @@
 
     if ([x_a1, x_t1, x_aslt1, x_int1, x_ilg1].includes("")) {
       result = "Please select all values.";
-      document.getElementById('result').innerText = result;
-      return;
-    }
-
-    if (
+      document.getElementById('lawTextContainer').innerText = "";
+    } else if (
       x_a1 === "person" &&
       x_t1 === "person" &&
       x_aslt1 === "true" &&
       x_int1 === "true" &&
       x_ilg1 === "true"
     ) {
-      result = "✅ Guilty of Battery.\nPenalty: up to 2 years imprisonment.\n\n📖 Loading Article 260 of the Criminal Act...";
-      document.getElementById('result').innerText = result;
-      loadArticle260();
+      result = "Guilty of Battery.\nPenalty: up to 2 years imprisonment.";
+      loadLaw260();  // 조문 불러오기
     } else {
-      result = "❌ Not guilty or insufficient elements for conviction.";
-      document.getElementById('result').innerText = result;
+      result = "Not guilty or insufficient elements for conviction.";
+      document.getElementById('lawTextContainer').innerText = "";
     }
+
+    document.getElementById('result').innerText = result;
   }
 
-  function loadArticle260() {
-    const url = "https://www.law.go.kr/DRF/lawService.do?OC=nthiseth&target=law&ID=4370&type=json";
+  function loadLaw260() {
+    const apiURL = "https://www.law.go.kr/DRF/lawService.do?OC=nthiseth&target=law&ID=001692&type=json";
 
-    fetch(url)
-      .then(response => response.json())
+    fetch(apiURL)
+      .then(res => res.json())
       .then(data => {
-        console.log(data); // 응답 구조 확인용
-        const articles = data?.Law?.Article;
-        if (!Array.isArray(articles)) throw new Error("법령 데이터 형식 오류");
+        const law = data.Law;
+        const articles = law.Article;
+        const article260 = articles.find(item => item.조문번호 === "260");
 
-        const article260 = articles.find(article => article.ArticleNo === "260");
-        if (!article260) throw new Error("형법 제260조를 찾을 수 없습니다.");
+        if (!article260) {
+          document.getElementById("lawTextContainer").innerText = "형법 제260조 조문을 찾을 수 없습니다.";
+          return;
+        }
 
-        document.getElementById('result').innerText += `\n\n📜 형법 제260조:\n${article260.ArticleContent}`;
+        const title = `형법 제${article260.조문번호}조 (${article260.조문제목})\n`;
+        const contents = article260.항.map(h => `${h.항번호} ${h.항내용.trim()}`).join("\n\n");
+        document.getElementById("lawTextContainer").innerText = `${title}\n${contents}`;
       })
-      .catch(error => {
-        console.error("Error fetching legal text:", error);
-        document.getElementById('result').innerText += `\n\n⚠️ Failed to load legal text: ${error.message}`;
+      .catch(err => {
+        document.getElementById("lawTextContainer").innerText = "법령을 불러오는 데 실패했습니다.";
+        console.error("Error fetching law:", err);
       });
   }
 </script>
 
 </body>
 </html>
+
