@@ -1,35 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>폭행죄</title>
-  <script>
-    function showRequirement() {
-      const value = document.getElementById("requirementSelect").value;
-      const display = document.getElementById("requirementDisplay");
-
-      if (value === "battery1") {
-        display.innerText = "x폭행1이 참이면 유죄입니다. 법정형은 2년 이하 징역 또는 500만원 이하 벌금입니다.";
-      } else if (value === "battery2") {
-        display.innerText = "x폭행2는 상습범의 경우에 해당합니다.";
-      } else {
-        display.innerText = "";
-      }
-    }
-  </script>
+  <meta charset="UTF-8" />
+  <title>Battery Judgment</title>
 </head>
 <body>
-  <h1>폭행죄 구성요건</h1>
+  <h1>Battery (폭행죄) Judgment</h1>
 
-  <label for="requirementSelect">구성요건 함수를 선택하세요:</label>
-  <select id="requirementSelect" onchange="showRequirement()">
-    <option value="">-- 선택하세요 --</option>
-    <option value="battery1">x폭행1: 사람을 폭행한 경우</option>
-    <option value="battery2">x폭행2: 상습 폭행</option>
-  </select>
+  <label>Was there bodily harm? (1 = Yes, 0 = No):</label>
+  <input type="number" id="x폭행1" min="0" max="1" /><br/><br/>
 
-  <p id="requirementDisplay" style="margin-top:20px; font-weight:bold;"></p>
+  <label>Did the victim want punishment? (1 = No, 0 = Yes):</label>
+  <input type="number" id="x폭행2" min="0" max="1" /><br/><br/>
 
-  <p><a href="index.html">← 돌아가기</a></p>
+  <button onclick="judgeBattery()">Judge</button>
+
+  <h2>Result:</h2>
+  <div id="result" style="white-space: pre-line;"></div>
+
+  <script>
+    function judgeBattery() {
+      const x1 = parseInt(document.getElementById('x폭행1').value);
+      const x2 = parseInt(document.getElementById('x폭행2').value);
+
+      let result = '';
+
+      if (x1 === 1) {
+        result = 'Guilty of Assault Causing Injury.\nPenalty: up to 7 years imprisonment.';
+      } else if (x1 === 0 && x2 === 1) {
+        result = 'Not guilty.\nReason: Victim does not wish to punish.';
+      } else if (x1 === 0 && x2 === 0) {
+        result = 'Guilty of Simple Assault.\nPenalty: up to 2 years imprisonment.';
+      } else {
+        result = 'Please enter valid values (0 or 1).';
+      }
+
+      document.getElementById('result').innerText = result;
+    }
+  </script>
 </body>
 </html>
