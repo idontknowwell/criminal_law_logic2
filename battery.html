@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Battery Judgment</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    button { margin-top: 15px; padding: 10px; }
+    .result { margin-top: 15px; font-weight: bold; white-space: pre-line; }
+    .law-text { margin-top: 15px; white-space: pre-wrap; background: #f9f9f9; padding: 10px; border-left: 4px solid #007acc; }
+  </style>
+</head>
+<body>
+
+<h2>Battery (폭행) Judgment</h2>
+
+<form id="batteryForm">
+
+  <label>Actor (x_a1): 
+    <select id="x_a1">
+      <option value="person">Person</option>
+      <option value="none">Other</option>
+    </select>
+  </label>
+
+  <label>Target (x_t1):
+    <select id="x_t1">
+      <option value="person">Person</option>
+      <option value="none">Other</option>
+    </select>
+  </label>
+
+  <label>Assault Act Occurred (x_aslt1):
+    <select id="x_aslt1">
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+  </label>
+
+  <label>Intent (x_int1):
+    <select id="x_int1">
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+  </label>
+
+  <label>Illegality (x_ilg1):
+    <select id="x_ilg1">
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+  </label>
+
+  <button type="button" onclick="judgeBattery()">Judge Battery</button>
+  <div id="result" class="result"></div>
+  <div id="lawText" class="law-text"></div>
+
+</form>
+
+<script>
+  async function judgeBattery() {
+    const x_a1 = document.getElementById('x_a1').value;
+    const x_t1 = document.getElementById('x_t1').value;
+    const x_aslt1 = document.getElementById('x_aslt1').value;
+    const x_int1 = document.getElementById('x_int1').value;
+    const x_ilg1 = document.getElementById('x_ilg1').value;
+
+    const resultDiv = document.getElementById('result');
+    const lawDiv = document.getElementById('lawText');
+    lawDiv.innerText = "";  // 법령 텍스트 초기화
+
+    if ([x_a1, x_t1, x_aslt1, x_int1, x_ilg1].includes("")) {
+      resultDiv.innerText = "Please select all values.";
+      return;
+    }
+
+    if (
+      x_a1 === "person" &&
+      x_t1 === "person" &&
+      x_aslt1 === "true" &&
+      x_int1 === "true" &&
+      x_ilg1 === "true"
+    ) {
+      resultDiv.innerText = "Guilty of Battery.\nPenalty: up to 2 years imprisonment.";
+
+      // API 호출: 형법 전체 법령 ID는 1864399, 제260조는 조문 중 하나
+      // type=json으로 받아서 260조 부분 파싱 예정
+      try {
+        const OC = 'nthiseth';  // ← 여기 기관코드(이메일 앞부분)로 바꿔주세요
+        const lawId = '1864399'; // 형법 법령 ID
+        const url = `https://www.law.go.kr/DRF/lawService.do?OC=${OC}&target=law&lawId=${lawId}&type=json`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('API request failed');
+        const data = await response.json();
+
+        // data.law.lawContents 배열에서 제260조 조문 찾기
+        // lawContents 배열 내 각 요소에 조문 번호(ord)가 있음, 260조는 ord=260
+        const article260 = data.lawContents.find(article => article.ord === '260');
+
+        if(article260 && article260.content) {
+          lawDiv.innerText = `형법 제260조 (폭행죄) 내용:\n\n${article260.content}`;
+        } else {
+          lawDiv.innerText = "Could not find Article 260 content.";
+        }
+      } catch (error) {
+        lawDiv.innerText = "Failed to load legal text: " + error.message;
+      }
+
+    } else {
+      resultDiv.innerText = "Not guilty or insufficient elements for conviction.";
+    }
+  }
+</script>
+
+</body>
+</html>
