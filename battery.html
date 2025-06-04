@@ -2,70 +2,35 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>폭행죄 판단기 + 형법 조문</title>
+  <title>형법 제260조 제1항 보기</title>
 </head>
 <body>
-  <h1>폭행죄 판단기</h1>
-
-  <label>
-    <input type="checkbox" id="x폭행1"> 폭행의 의사 (고의)
-  </label><br>
-  <label>
-    <input type="checkbox" id="x폭행2"> 상대방 의사에 반함
-  </label><br>
-  <label>
-    <input type="checkbox" id="x폭행3"> 폭행 행위 존재
-  </label><br><br>
-
-  <button onclick="judgeAssault()">판단하기</button>
-
-  <h2>판단 결과</h2>
-  <pre id="verdict">아직 판단되지 않았습니다.</pre>
-
-  <h2>형법 제260조 제1항</h2>
-  <pre id="law-text">조건을 만족하면 조문이 여기에 표시됩니다.</pre>
+  <h1>형법 제260조 제1항</h1>
+  <pre id="law-text">불러오는 중...</pre>
 
   <script>
-    function judgeAssault() {
-      const x1 = document.getElementById("x폭행1").checked;
-      const x2 = document.getElementById("x폭행2").checked;
-      const x3 = document.getElementById("x폭행3").checked;
+    const url = "https://www.law.go.kr/DRF/lawService.do";
+    const params = {
+      OC: "nthiseth",          // 실제 서비스 시 본인의 인증키로 바꾸세요
+      target: "joRltLstrm",
+      type: "json",
+      ID: "001692",            // 형법 ID
+      JO: "026000"             // 형법 제260조
+    };
 
-      const isGuilty = x1 && x2 && x3;
+    const query = new URLSearchParams(params).toString();
+    const fullUrl = `${url}?${query}`;
 
-      const verdictText = isGuilty
-        ? "유죄 (폭행죄가 성립합니다.)"
-        : "무죄 (폭행죄가 성립하지 않습니다.)";
-
-      document.getElementById("verdict").textContent = verdictText;
-
-      if (isGuilty) {
-        const url = "https://www.law.go.kr/DRF/lawService.do";
-        const params = {
-          OC: "nthiseth",  // 실제 사용 시 본인의 인증키로 변경
-          target: "joRltLstrm",
-          type: "json",
-          ID: "001692",     // 형법 ID
-          JO: "026000"      // 형법 제260조
-        };
-
-        const query = new URLSearchParams(params).toString();
-        const fullUrl = `${url}?${query}`;
-
-        fetch(fullUrl)
-          .then(res => res.json())
-          .then(data => {
-            const content = data.joRltLstrm.조문내용;
-            const firstClause = content.split('\n')[0]; // 제1항만 표시
-            document.getElementById("law-text").textContent = firstClause;
-          })
-          .catch(err => {
-            document.getElementById("law-text").textContent = "조문 불러오기 실패: " + err;
-          });
-      } else {
-        document.getElementById("law-text").textContent = "조문은 유죄일 때만 표시됩니다.";
-      }
-    }
+    fetch(fullUrl)
+      .then(res => res.json())
+      .then(data => {
+        const content = data.joRltLstrm.조문내용;
+        const firstClause = content.split('\n')[0]; // 제1항만 표시
+        document.getElementById("law-text").textContent = firstClause;
+      })
+      .catch(err => {
+        document.getElementById("law-text").textContent = "조문 불러오기 실패: " + err;
+      });
   </script>
 </body>
 </html>
