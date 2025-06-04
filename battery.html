@@ -9,7 +9,6 @@
     label { display: block; margin-top: 10px; }
     button { margin-top: 15px; padding: 10px; }
     .result { margin-top: 15px; font-weight: bold; white-space: pre-line; }
-    .law-text { margin-top: 15px; white-space: pre-wrap; background: #f9f9f9; padding: 10px; border-left: 4px solid #007acc; }
   </style>
 </head>
 <body>
@@ -55,24 +54,22 @@
 
   <button type="button" onclick="judgeBattery()">Judge Battery</button>
   <div id="result" class="result"></div>
-  <div id="lawText" class="law-text"></div>
 
 </form>
 
 <script>
-  async function judgeBattery() {
+  function judgeBattery() {
     const x_a1 = document.getElementById('x_a1').value;
     const x_t1 = document.getElementById('x_t1').value;
     const x_aslt1 = document.getElementById('x_aslt1').value;
     const x_int1 = document.getElementById('x_int1').value;
     const x_ilg1 = document.getElementById('x_ilg1').value;
 
-    const resultDiv = document.getElementById('result');
-    const lawDiv = document.getElementById('lawText');
-    lawDiv.innerText = "";  // 법령 텍스트 초기화
+    let result = "";
 
     if ([x_a1, x_t1, x_aslt1, x_int1, x_ilg1].includes("")) {
-      resultDiv.innerText = "Please select all values.";
+      result = "Please select all values.";
+      document.getElementById('result').innerText = result;
       return;
     }
 
@@ -83,35 +80,34 @@
       x_int1 === "true" &&
       x_ilg1 === "true"
     ) {
-      resultDiv.innerText = "Guilty of Battery.\nPenalty: up to 2 years imprisonment.";
-
-      // API 호출: 형법 전체 법령 ID는 1864399, 제260조는 조문 중 하나
-      // type=json으로 받아서 260조 부분 파싱 예정
-      try {
-        const OC = 'nthiseth';  // ← 여기 기관코드(이메일 앞부분)로 바꿔주세요
-        const lawId = '1864399'; // 형법 법령 ID
-        const url = `https://www.law.go.kr/DRF/lawService.do?OC=${OC}&target=law&lawId=${lawId}&type=json`;
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('API request failed');
-        const data = await response.json();
-
-        // data.law.lawContents 배열에서 제260조 조문 찾기
-        // lawContents 배열 내 각 요소에 조문 번호(ord)가 있음, 260조는 ord=260
-        const article260 = data.lawContents.find(article => article.ord === '260');
-
-        if(article260 && article260.content) {
-          lawDiv.innerText = `형법 제260조 (폭행죄) 내용:\n\n${article260.content}`;
-        } else {
-          lawDiv.innerText = "Could not find Article 260 content.";
-        }
-      } catch (error) {
-        lawDiv.innerText = "Failed to load legal text: " + error.message;
-      }
-
+      result = "✅ Guilty of Battery.\nPenalty: up to 2 years imprisonment.\n\n📖 Loading Article 260 of the Criminal Act...";
+      document.getElementById('result').innerText = result;
+      loadArticle260();
     } else {
-      resultDiv.innerText = "Not guilty or insufficient elements for conviction.";
+      result = "❌ Not guilty or insufficient elements for conviction.";
+      document.getElementById('result').innerText = result;
     }
+  }
+
+  function loadArticle260() {
+    const url = "https://www.law.go.kr/DRF/lawService.do?OC=nthiseth&target=law&ID=4370&type=json";
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data); // 응답 구조 확인용
+        const articles = data?.Law?.Article;
+        if (!Array.isArray(articles)) throw new Error("법령 데이터 형식 오류");
+
+        const article260 = articles.find(article => article.ArticleNo === "260");
+        if (!article260) throw new Error("형법 제260조를 찾을 수 없습니다.");
+
+        document.getElementById('result').innerText += `\n\n📜 형법 제260조:\n${article260.ArticleContent}`;
+      })
+      .catch(error => {
+        console.error("Error fetching legal text:", error);
+        document.getElementById('result').innerText += `\n\n⚠️ Failed to load legal text: ${error.message}`;
+      });
   }
 </script>
 
