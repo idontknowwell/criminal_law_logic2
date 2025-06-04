@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>형법 규범 시스템</title>
+  <meta charset="UTF-8" />
+  <title>Simple Legal Judgment Tool</title>
 </head>
 <body>
-  <h1>죄명을 선택하세요</h1>
-  <ul>
-    <li><a href="battery.html">폭행죄</a></li>
-    <li><a href="fraud.html">사기죄</a></li>
-    <li><a href="sexual_assault.html">강제추행죄</a></li>
-  </ul>
+  <h1>Choose a crime</h1>
+  <select id="crimeSelect">
+    <option value="">-- Select a crime --</option>
+    <option value="battery">폭행죄 (Battery)</option>
+  </select>
+  <button onclick="goToCrimePage()">Go</button>
+
+  <script>
+    function goToCrimePage() {
+      const selected = document.getElementById('crimeSelect').value;
+      if (selected) {
+        window.location.href = selected + '.html';
+      }
+    }
+  </script>
 </body>
 </html>
